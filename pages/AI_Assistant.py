@@ -1,39 +1,46 @@
 import streamlit as st
+import os
+from dotenv import load_dotenv
+from groq import Groq
+load_dotenv()
 
 st.title("🤖 AI Assistant")
-
 st.write("Ask any cricket-related question")
+
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+def rule_based_question(question):
+    if "virat" in question:
+        return "Virat Kohli is known for consistency and strong chasing ability."
+    if "dhoni" in question:
+        return "MS Dhoni is famous for calm captaincy and finishing skills."
+    return None
 
 user_question = st.text_input("Write your query")
 
 if user_question:
     question = user_question.lower()
 
-    if "virat" in question :
-        st.success(    "Virat Kohli is known for his consistency, strong cover drives, "
-            "and excellent chasing ability, especially in ODIs.")
-        
-    elif "dhoni" in question :
-        st.success(
-            "MS Dhoni is famous for his calm captaincy, helicopter shot,"
-            "and finishing skills under pressure."
+    rule_answer = rule_based_question(question)
+
+    if rule_answer:
+        st.success(rule_answer)
+    else:
+        with st.spinner("AI is thinking ⏳"):
+            response = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {"role": "system", "content": "You are a helpful cricket expert."},
+                    {"role": "user", "content": user_question}
+                ]
             )
 
-    elif "best batsman" in question:
-        st.success(
-        
-        "   The best batsman depends on format. "
-            "Virat Kohli excels in ODIs, "
-            "Babar Azam is strong in modern formats, "
-            "and Joe Root dominates Tests."
-        )
+        st.success(response.choices[0].message.content)
 
-    elif "bowling" in question:
-        st.success(
-            "Good bowling requires line, length, variation, and reading the batsman."
-        )
+         
+                                           
+                                  
+                                           
+                                           
+                                           
 
-    else:
-        st.warning(
-            "I am still learning 🤖. Try asking about a famous player or batting skills."
-        )
